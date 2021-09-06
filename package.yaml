@@ -25,6 +25,7 @@ dependencies:
 - optparse-applicative
 - aeson 
 - text
+- gloss
 
 library:
   source-dirs: src
@@ -49,4 +50,6 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - hspec
     - hello-world
+    

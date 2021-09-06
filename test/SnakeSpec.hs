@@ -16,76 +16,62 @@ snakeSpec =
             foodPositions = [],
             ticksPassed = 0
         }
-        describe "nextHeadPosition" $ do
-            let snakeState = mkSnakePosition [(5, 5), (5, 6), (5, 7)]
-            it "handle left correctly" $ do
-                let newHeadPosition = nextHeadPosition Snake.Left snakeState
-                newHeadPosition `shouldBe` mkLogicCoord 4 5
-            it "handle right correctly" $ do
-                let newHeadPosition = nextHeadPosition Snake.Right snakeState
-                newHeadPosition `shouldBe` mkLogicCoord 6 5
-            it "handle up correctly" $ do
-                let newHeadPosition = nextHeadPosition Snake.Up snakeState
-                newHeadPosition `shouldBe` mkLogicCoord 5 4
-            it "handle up correctly" $ do
-                let newHeadPosition = nextHeadPosition Snake.Down snakeState
-                newHeadPosition `shouldBe` mkLogicCoord 5 6
 
         describe "moveSnake" $ do
             describe "handling moves without food" $ do
                 it "could move left correctly" $ do
                     let snakeState = mkSnakePosition [(5, 5), (5, 6), (5, 7)]
-                    let gameState = testGameState { snakePosition = snakeState }
-                    let nextPosition = snakePosition <$> moveSnake Snake.Left gameState
+                    let gameState = testGameState { snakePosition = snakeState, headDirection = Snake.Left }
+                    let nextPosition = snakePosition <$> moveSnake gameState
                     nextPosition `shouldBe` Prelude.Right (mkSnakePosition [(4, 5), (5, 5), (5, 6)])
 
                 it "could move right correctly" $ do
                     let snakeState = mkSnakePosition [(5, 5), (5, 6), (5, 7)]
-                    let gameState = testGameState { snakePosition = snakeState }
-                    let nextPosition = snakePosition <$> moveSnake Snake.Right gameState
+                    let gameState = testGameState { snakePosition = snakeState, headDirection = Snake.Right }
+                    let nextPosition = snakePosition <$> moveSnake gameState
                     nextPosition `shouldBe` Prelude.Right (mkSnakePosition [(6, 5), (5, 5), (5, 6)])
 
                 it "could move up correctly" $ do
                     let snakeState = mkSnakePosition [(5, 5), (5, 6), (5, 7)]
-                    let gameState = testGameState { snakePosition = snakeState }
-                    let nextPosition = snakePosition <$> moveSnake Snake.Up gameState
+                    let gameState = testGameState { snakePosition = snakeState, headDirection = Snake.Up }
+                    let nextPosition = snakePosition <$> moveSnake gameState
                     nextPosition `shouldBe` Prelude.Right (mkSnakePosition [(5, 4), (5, 5), (5, 6)])
 
                 it "could move down correctly" $ do
                     let snakeState = mkSnakePosition [(5, 5), (5, 4), (5, 3)]
-                    let gameState = testGameState { snakePosition = snakeState }
-                    let nextPosition = snakePosition <$> moveSnake Snake.Down gameState
+                    let gameState = testGameState { snakePosition = snakeState, headDirection = Snake.Down }
+                    let nextPosition = snakePosition <$> moveSnake gameState
                     nextPosition `shouldBe` Prelude.Right (mkSnakePosition [(5, 6), (5, 5), (5, 4)])
 
             it "could detect self-eating" $ do
                 let snakeState = mkSnakePosition [(2, 2), (2, 3), (1, 3), (1, 2), (1, 1)]
-                let gameState = testGameState { snakePosition = snakeState }
-                let nextPosition = snakePosition <$> moveSnake Snake.Left gameState
+                let gameState = testGameState { snakePosition = snakeState, headDirection = Snake.Left }
+                let nextPosition = snakePosition <$> moveSnake gameState
                 nextPosition `shouldBe` Prelude.Left CellTaken
 
             describe "boundary hit detection" $ do
                 it "could detect top boundary hit when moving up" $ do
                     let snakeState = mkSnakePosition [(1, 1), (2, 1), (3, 1)]
-                    let gameState = testGameState { snakePosition = snakeState }
-                    let nextGameState = moveSnake Snake.Up gameState
+                    let gameState = testGameState { snakePosition = snakeState, headDirection = Snake.Up }
+                    let nextGameState = moveSnake gameState
                     nextGameState `shouldBe` Prelude.Left (BoundaryHit $ mkLogicCoord 1 0)
 
-                it "could detect left boundary hit" $ do 
+                it "could detect left boundary hit" $ do
                     let snakeState = mkSnakePosition [(1, 1), (2, 1), (3, 1)]
-                    let gameState = testGameState { snakePosition = snakeState }
-                    let nextGameState = moveSnake Snake.Left gameState
+                    let gameState = testGameState { snakePosition = snakeState, headDirection = Snake.Left }
+                    let nextGameState = moveSnake gameState
                     nextGameState `shouldBe` Prelude.Left (BoundaryHit $ mkLogicCoord 0 1)
 
-                it "could detect bottom boundary hit" $ do 
+                it "could detect bottom boundary hit" $ do
                     let snakeState = mkSnakePosition [(9, 9), (9, 8), (9, 7)]
-                    let gameState = testGameState { snakePosition = snakeState }
-                    let nextGameState = moveSnake Snake.Down gameState
+                    let gameState = testGameState { snakePosition = snakeState, headDirection = Snake.Down }
+                    let nextGameState = moveSnake gameState
                     nextGameState `shouldBe` Prelude.Left (BoundaryHit $ mkLogicCoord 9 10)
 
-                it "could detect right boundary hit" $ do 
+                it "could detect right boundary hit" $ do
                     let snakeState = mkSnakePosition [(9, 9), (9, 8), (9, 7)]
-                    let gameState = testGameState { snakePosition = snakeState }
-                    let nextGameState = moveSnake Snake.Right gameState
+                    let gameState = testGameState { snakePosition = snakeState, headDirection = Snake.Right }
+                    let nextGameState = moveSnake gameState
                     nextGameState `shouldBe` Prelude.Left (BoundaryHit $ mkLogicCoord 10 9)
 
             it "could handle eating food" $ do
@@ -93,9 +79,10 @@ snakeSpec =
                 let foodPositions = [(2, 1)]
                 let gameState = testGameState {
                     snakePosition = mkSnakePosition snakePositionsBefore,
-                    foodPositions = map (uncurry mkLogicCoord) foodPositions
+                    foodPositions = map (uncurry mkLogicCoord) foodPositions,
+                    headDirection = Snake.Up
                 }
-                let newGameState = moveSnake Snake.Up gameState
+                let newGameState = moveSnake gameState
                 let newSnakePosition = snakePosition <$> newGameState
                 let newFoodPosition = Snake.foodPositions <$> newGameState
 
@@ -103,4 +90,8 @@ snakeSpec =
                 newSnakePosition `shouldBe` Prelude.Right expectedSnakePosition
                 newFoodPosition `shouldBe` Prelude.Right []
 
+        describe "handleTick" $ do
+            it "adds new tick to the total count" $ do
+                let newGameState = handleTick testGameState
+                newGameState `shouldBe` testGameState { ticksPassed = 1 + ticksPassed testGameState}
 

@@ -1,4 +1,5 @@
 module Snake (
+    Coord,
     LogicCoord,
     Direction (..),
     SnakePosition (..),
@@ -6,11 +7,9 @@ module Snake (
     GameState (..),
     mkLogicCoord,
     mkRectangle,
-    nextHeadPosition,
-    moveSnake
+    moveSnake,
+    handleTick
 ) where
-
-import System.IO
 
 data Direction = Up
                | Down
@@ -18,7 +17,7 @@ data Direction = Up
                | Right
                deriving (Show, Eq)
 
-data ImpossibleMove = CellTaken 
+data ImpossibleMove = CellTaken
                     | BoundaryHit LogicCoord
                     deriving (Show, Eq)
 
@@ -34,7 +33,7 @@ data Rectangle = Rectangle {
 
 mkRectangle :: (Int, Int) -> (Int, Int) -> Rectangle
 mkRectangle (topLeftX, topLeftY) (bottomRightX, bottomRightY) =
-    Rectangle 
+    Rectangle
         (Coord topLeftX topLeftY)
         (Coord bottomRightX bottomRightY)
 
@@ -49,11 +48,11 @@ unLogicCoord :: LogicCoord -> Coord
 unLogicCoord (LogicCoord coord) = coord
 
 withinBoundary :: Rectangle -> Coord -> Bool
-withinBoundary (Rectangle (Coord topLeftX topLeftY) (Coord bottomRightX bottomRightY)) 
+withinBoundary (Rectangle (Coord topLeftX topLeftY) (Coord bottomRightX bottomRightY))
                (Coord x y) =
-    x > topLeftX 
+    x > topLeftX
     && x < bottomRightX
-    && y > topLeftY 
+    && y > topLeftY
     && y < bottomRightY
 
 newtype SnakePosition = SnakePosition [LogicCoord]
@@ -86,9 +85,9 @@ nextHeadPosition direction snakeState =
             Snake.Right -> mkLogicCoord 1 0
     in headPosition <> add_term
 
-moveSnake :: Direction -> GameState -> Either ImpossibleMove GameState
-moveSnake direction currentState =
-    let newHeadPosition = nextHeadPosition direction $ snakePosition currentState
+moveSnake :: GameState -> Either ImpossibleMove GameState
+moveSnake currentState =
+    let newHeadPosition = nextHeadPosition (headDirection currentState) $ snakePosition currentState
         newTailPosition = init (unSnakePosition $ snakePosition currentState)
         isBoundaryHit = not $ withinBoundary (gameDimensions currentState) (unLogicCoord newHeadPosition)
         newGameState =
@@ -106,3 +105,7 @@ moveSnake direction currentState =
         if collision then Prelude.Left CellTaken
         else if isBoundaryHit then Prelude.Left $ BoundaryHit newHeadPosition
         else Prelude.Right newGameState
+
+handleTick :: GameState -> GameState
+handleTick gameState =
+    gameState { ticksPassed = 1 + ticksPassed gameState }
